@@ -9,9 +9,9 @@ using xNet;
 
 namespace HideMyNameKeyParser
 {
-    internal class Program
+    public class Program
     {
-        private static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var htmls = "";
             var keys = new List<string>();
@@ -22,7 +22,7 @@ namespace HideMyNameKeyParser
                 "https://vk.com/keys_hidemy_vpn"
             };
 
-            Console.Title = "HideMyName code parser & checker by Temnij";
+            Console.Title = "\tHideMyName code parser & checker by -=[TEMNIJ]=- v 1.0";
 
 
             #region Parser
@@ -33,7 +33,7 @@ namespace HideMyNameKeyParser
                 htmls += new WebClient().DownloadString(site) + "\n";
                 Log("\t~Downloaded~\n");
 
-                if(sites.IndexOf(site) != 2) Thread.Sleep(3000);
+                if (sites.IndexOf(site) != 2) Thread.Sleep(3000);
             }
 
             foreach (Match match in Regex.Matches(htmls, "(\\d{14})"))
@@ -46,13 +46,13 @@ namespace HideMyNameKeyParser
 
             #region Checker
 
-            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.Red;
 
             Log("\nChecking...\n\n");
 
             var req = new HttpRequest();
 
-            Log("Чел. Откуда прокси брать будем? Принимаю только Socks4!");
+            Log("Чел. Откуда прокси брать будем? Принимаю только Socks4 пока!");
 
             var proxies = File.ReadAllLines(Console.ReadLine());
 
@@ -122,6 +122,7 @@ namespace HideMyNameKeyParser
                     Environment.Exit(0);
                     break;
             }
+
             // Эта фигня почему-то не робит ;((((
         }
 
