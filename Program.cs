@@ -180,7 +180,7 @@ namespace HideMyNameKeyParser
                                 okKeysList.Add(key);
 
                                 Log(key + " " + code + " " +
-                                    JObject.Parse(request)["time_remaining"].ToString().ToInt() / 60 / 60 + "h");
+                                    JObject.Parse(request)["time_remaining"].ToString().ToInt() / 60 / 60 + " часа(ов) осталось");
                             }
                             else
                             {
