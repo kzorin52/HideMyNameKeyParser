@@ -17,15 +17,12 @@ namespace HideMyNameKeyParser
         public static void Main(string[] args)
         {
             var htmls = "";
-
+            //https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=
             var sites = new List<string>
             {
-                "https://vk.com/hidemy_vpn_keys",
-                "https://vk.com/hidemy_name_keys",
-                "https://vk.com/keys_hidemy_vpn",
-                "https://t.me/s/hidemyname_keys",
-                "https://t.me/s/HideMyNameKeys",
-                "https://t.me/s/freeHideMyVpn"
+                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_vpn_keys",
+                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_name_keys",
+                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=keys_hidemy_vpn"
             };
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls |
@@ -82,11 +79,9 @@ namespace HideMyNameKeyParser
 
                 foreach (var site in sites)
                 {
-                    Log("Downloading " + site);
+                    Log("Downloading " + site.Substring(143));
                     htmls += new WebClient().DownloadString(site) + "\n";
                     Log("\t~Downloaded~\n");
-
-                    if (sites.IndexOf(site) != 2) Thread.Sleep(3000);
                 }
 
                 keys.AddRange(Regex.Matches(htmls, "(\\d{14})")
@@ -100,11 +95,10 @@ namespace HideMyNameKeyParser
 
             var okKeysList = new List<string>();
 
-            var check = new Task(async () =>
+            var check = new Task(() =>
             {
                 #region Checker
 
-                
                 void SaveAndGrabProxies(object obj)
                 {
                     File.WriteAllLines($"Keys-{DateTime.Now:dd-MM-yyyy-HH-mm}.txt", okKeysList);
@@ -122,7 +116,7 @@ namespace HideMyNameKeyParser
                 Log("Чтоб облегчить тебе труд, так уж и быть, прокси я сам скачаю");
 
                 var proxies = new Scraper()
-                    .GetProxies(Scraper.ProxyType.Socks4, 1500)
+                    .GetProxies(Scraper.ProxyType.Socks4, 2000)
                     .Replace("\r", "")
                     .Split('\n');
 
@@ -136,8 +130,9 @@ namespace HideMyNameKeyParser
 
                 foreach (var key in keys)
                 {
-                    await Task.Run(() =>
+                    new Thread(() =>
                     {
+                        //Console.WriteLine("Начало");
                         check:
                         try
                         {
@@ -180,7 +175,8 @@ namespace HideMyNameKeyParser
                                 okKeysList.Add(key);
 
                                 Log(key + " " + code + " " +
-                                    JObject.Parse(request)["time_remaining"].ToString().ToInt() / 60 / 60 + " часа(ов) осталось");
+                                    JObject.Parse(request)["time_remaining"].ToString().ToInt() / 60 / 60 +
+                                    " часа(ов) осталось");
                             }
                             else
                             {
@@ -192,7 +188,10 @@ namespace HideMyNameKeyParser
                             x++;
                             goto check;
                         }
-                    });
+
+                        //Console.WriteLine("Конец");
+                    }).Start();
+
 
                     x++;
                 }
@@ -200,7 +199,6 @@ namespace HideMyNameKeyParser
                 #endregion
 
                 #region Timer
-
 
                 #endregion
             });
