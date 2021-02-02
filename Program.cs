@@ -28,7 +28,7 @@ namespace HideMyNameKeyParser
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls |
                                                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 
-            Console.Title = "\tHideMyName code parser & checker by -=[TEMNIJ]=- v 1.8";
+            Console.Title = "\tHideMyName code parser & checker by -=[TEMNIJ]=- v 2.0";
             var keys = new List<string>();
 
             Console.WriteLine("Режим:\n\t1 - Генерация & чек\n\t2 - Парсинг & чек\n");
@@ -39,33 +39,34 @@ namespace HideMyNameKeyParser
 
                 for (var i = 0; i < 50; i++)
                 {
-                    var l1 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var rnd = new Random(Environment.TickCount);
+                    var l1 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l2 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l2 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l3 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l3 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l4 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l4 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l5 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l5 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l6 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l6 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l7 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l7 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l8 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l8 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l9 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l9 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l10 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l10 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l11 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l11 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l12 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l12 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l13 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l13 = rnd.Next(0, 9).ToString();
                     Thread.Sleep(5);
-                    var l14 = new Random(Environment.TickCount).Next(0, 9).ToString();
+                    var l14 = rnd.Next(0, 9).ToString();
 
                     keys.Add(l1 + l2 + l3 + l4 + l5 + l6 + l7 + l8 + l9 + l10 + l11 + l12 + l13 + l14);
                 }
@@ -203,15 +204,19 @@ namespace HideMyNameKeyParser
                 #endregion
             });
             check.Start();
+            
 
             while (true)
             {
+                if(check.IsCompleted)
+                    Console.WriteLine("Done!");
+
                 var keyC = Console.ReadKey();
                 switch (keyC.Key)
                 {
                     case ConsoleKey.S:
-                        File.WriteAllLines($"Keys-{DateTime.Now:dd-MM-yyyy-HH-mm}.txt", okKeysList);
-                        Log("\nСохранил\n");
+                        Save(okKeysList);
+                        Log("\nСохранил");
                         break;
                     case ConsoleKey.E:
                         check.Dispose();
@@ -219,6 +224,19 @@ namespace HideMyNameKeyParser
                         break;
                 }
             }
+        }
+
+        static void Save(List<string> keys)
+        {
+            List<string> okKeysList = new List<string>();
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+               okKeysList.Add($"{i}) 🔑 —{keys[i]}— 🔑");
+            }
+            okKeysList.Add("Все ключи чекались чекером ключей `HideMyName code parser & checker by -=[TEMNIJ]=-`");
+
+            File.WriteAllLines($"Ключи HideMy {DateTime.Now:dd-MM-yyyy HH-mm}.txt", okKeysList);
         }
 
         private static void Log(object text)
