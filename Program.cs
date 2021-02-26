@@ -130,7 +130,7 @@ namespace HideMyNameKeyParser
                 else
                 {
                     proxies = File.ReadAllLines("socks4autoload.txt");
-                    
+
                     Log($"\nПодгрузил {proxies.Length} проксей \n");
                 }
 
@@ -142,76 +142,328 @@ namespace HideMyNameKeyParser
 
                 keys.Shuffle();
 
+                var keys1 = keys.GetRange(0, keys.Count / 4);
+                var keys2 = keys.GetRange(keys.Count / 4, keys.Count / 4);
+                var keys3 = keys.GetRange((keys.Count / 4) * 2, keys.Count / 4);
+                var keys4 = keys.GetRange((keys.Count / 4) * 3, keys.Count / 4);
 
-                foreach (var key in keys)
+                Task.Run(() =>
                 {
-                    new Thread(() =>
+                    foreach (var key in keys1)
                     {
-                    check:
-                        try
+                        new Thread(() =>
                         {
-                            req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
-                        }
-                        catch (IndexOutOfRangeException)
-                        {
-                            x = 0;
-                            goto check;
-                        }
-                        catch (ArgumentException)
-                        {
-                            x++;
-                            goto check;
-                        }
-
-                        try
-                        {
-                            var request =
-                                req.Get($"https://hidemy.name/api/vpn_check_code.php?out=js&code={key}").ToString();
-
-                            var code = JObject.Parse(request)["result"].ToString();
-
-                            if (code.Contains("PROXY"))
+                        check:
+                            try
+                            {
+                                req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                x = 0;
+                                goto check;
+                            }
+                            catch (ArgumentException)
                             {
                                 x++;
                                 goto check;
                             }
 
-                            if (code.Contains("FAST"))
+                            try
                             {
-                                Thread.Sleep(500);
+                                var request =
+                                    req.Get($"https://hidemy.name/api/vpn_check_code.php?out=js&code={key}").ToString();
+
+                                var code = JObject.Parse(request)["result"].ToString();
+
+                                if (code.Contains("PROXY"))
+                                {
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("FAST"))
+                                {
+                                    Thread.Sleep(500);
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("OK"))
+                                {
+                                    try
+                                    {
+                                        okKeysList.Add(key);
+
+                                        DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(double.Parse(JObject.Parse(request)["time_remaining"].ToString()));
+
+                                        Log(key + " " + code + " " + pDate.ToString("hh:mm:ss") +
+                                            " осталось");
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        throw(ex);
+                                    }
+                                }
+                                else
+                                {
+                                    Log(key + " " + code);
+                                }
+                            }
+                            catch
+                            {
+                                errors++;
+                                x++;
+
+                                Console.Title = "Checking... Errors: " + errors;
+                                goto check;
+                            }
+
+                        }).Start();
+
+
+                        x++;
+                    }
+                });
+
+                Task.Run(() =>
+                {
+                    foreach (var key in keys2)
+                    {
+                        new Thread(() =>
+                        {
+                        check:
+                            try
+                            {
+                                req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                x = 0;
+                                goto check;
+                            }
+                            catch (ArgumentException)
+                            {
                                 x++;
                                 goto check;
                             }
 
-                            if (code.Contains("OK"))
+                            try
                             {
-                                okKeysList.Add(key);
+                                var request =
+                                    req.Get($"https://hidemy.name/api/vpn_check_code.php?out=js&code={key}").ToString();
 
-                                DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(JObject.Parse(request)["time_remaining"].ToString().ToInt());
-                                var tdate = pDate - DateTime.Now;
+                                var code = JObject.Parse(request)["result"].ToString();
 
-                                Log(key + " " + code + " " + tdate.ToString("hh:mm:ss") +
-                                    " осталось");
+                                if (code.Contains("PROXY"))
+                                {
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("FAST"))
+                                {
+                                    Thread.Sleep(500);
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("OK"))
+                                {
+                                    try
+                                    {
+                                        okKeysList.Add(key);
+
+                                        DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(JObject.Parse(request)["time_remaining"].ToString().ToInt());
+                                        var tdate = pDate - DateTime.Now;
+
+                                        Log(key + " " + code + " " + tdate.ToString("hh:mm:ss") +
+                                            " осталось");
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        throw(ex);
+                                    }
+                                }
+                                else
+                                {
+                                    Log(key + " " + code);
+                                }
                             }
-                            else
+                            catch
                             {
-                                Log(key + " " + code);
+                                errors++;
+                                x++;
+
+                                Console.Title = "Checking... Errors: " + errors;
+                                goto check;
                             }
-                        }
-                        catch
+
+                        }).Start();
+
+
+                        x++;
+                    }
+                });
+                
+                Task.Run(() =>
+                {
+                    foreach (var key in keys3)
+                    {
+                        new Thread(() =>
                         {
-                            errors++;
-                            x++;
+                        check:
+                            try
+                            {
+                                req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                x = 0;
+                                goto check;
+                            }
+                            catch (ArgumentException)
+                            {
+                                x++;
+                                goto check;
+                            }
 
-                            Console.Title = "Checking... Errors: " + errors;
-                            goto check;
-                        }
+                            try
+                            {
+                                var request =
+                                    req.Get($"https://hidemy.name/api/vpn_check_code.php?out=js&code={key}").ToString();
 
-                    }).Start();
+                                var code = JObject.Parse(request)["result"].ToString();
+
+                                if (code.Contains("PROXY"))
+                                {
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("FAST"))
+                                {
+                                    Thread.Sleep(500);
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("OK"))
+                                {
+                                    try
+                                    {
+                                        okKeysList.Add(key);
+
+                                        DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(double.Parse(JObject.Parse(request)["time_remaining"].ToString()));
+
+                                        Log(key + " " + code + " " + pDate.ToString("hh:mm:ss") +
+                                            " осталось");
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        throw(ex);
+                                    }
+                                }
+                                else
+                                {
+                                    Log(key + " " + code);
+                                }
+                            }
+                            catch
+                            {
+                                errors++;
+                                x++;
+
+                                Console.Title = "Checking... Errors: " + errors;
+                                goto check;
+                            }
+
+                        }).Start();
 
 
-                    x++;
-                }
+                        x++;
+                    }
+                });
+
+                Task.Run(() =>
+                {
+                    foreach (var key in keys4)
+                    {
+                        new Thread(() =>
+                        {
+                        check:
+                            try
+                            {
+                                req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                x = 0;
+                                goto check;
+                            }
+                            catch (ArgumentException)
+                            {
+                                x++;
+                                goto check;
+                            }
+
+                            try
+                            {
+                                var request =
+                                    req.Get($"https://hidemy.name/api/vpn_check_code.php?out=js&code={key}").ToString();
+
+                                var code = JObject.Parse(request)["result"].ToString();
+
+                                if (code.Contains("PROXY"))
+                                {
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("FAST"))
+                                {
+                                    Thread.Sleep(500);
+                                    x++;
+                                    goto check;
+                                }
+
+                                if (code.Contains("OK"))
+                                {
+                                    try
+                                    {
+                                        okKeysList.Add(key);
+
+                                        DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(JObject.Parse(request)["time_remaining"].ToString().ToInt());
+                                        var tdate = pDate - DateTime.Now;
+
+                                        Log(key + " " + code + " " + tdate.ToString("hh:mm:ss") +
+                                            " осталось");
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        throw(ex);
+                                    }
+                                }
+                                else
+                                {
+                                    Log(key + " " + code);
+                                }
+                            }
+                            catch
+                            {
+                                errors++;
+                                x++;
+
+                                Console.Title = "Checking... Errors: " + errors;
+                                goto check;
+                            }
+
+                        }).Start();
+
+
+                        x++;
+                    }
+                });
 
                 #endregion
 
