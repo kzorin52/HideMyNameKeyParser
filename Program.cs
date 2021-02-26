@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using ProxyScrapeAPI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,8 +8,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using ProxyScrapeAPI;
 using xNet;
 
 namespace HideMyNameKeyParser
@@ -17,12 +17,11 @@ namespace HideMyNameKeyParser
         public static void Main(string[] args)
         {
             var htmls = "";
-            //https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=
+
             var sites = new List<string>
             {
-                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_vpn_keys",
-                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_name_keys",
-                "https://api.vk.com/method/wall.get?count=2&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=keys_hidemy_vpn"
+                "https://api.vk.com/method/wall.get?count=3&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_vpn_keys",
+                "https://api.vk.com/method/wall.get?count=3&v=5.126&access_token=6a7240856a7240856a724085736a0327f666a726a72408534d612167901c443446147c0&domain=hidemy_name_keys"
             };
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls |
@@ -37,7 +36,7 @@ namespace HideMyNameKeyParser
             {
                 #region Generator
 
-                for (var i = 0; i < 50; i++)
+                for (var i = 0; i < 150; i++)
                 {
                     var rnd = new Random(Environment.TickCount);
                     var l1 = rnd.Next(0, 9).ToString();
@@ -113,17 +112,32 @@ namespace HideMyNameKeyParser
                 Log("\nChecking...\n\n");
 
                 var req = new HttpRequest();
+                string[] proxies;
+
+                req.UserAgent = "AndroidVPNGui/2.0.79 (h-RU; Android SDK: 29 (10); ru; +0600)";
 
                 Log("Чтоб облегчить тебе труд, так уж и быть, прокси я сам скачаю");
 
-                var proxies = new Scraper()
-                    .GetProxies(Scraper.ProxyType.Socks4, 2000)
-                    .Replace("\r", "")
-                    .Split('\n');
+                if (!File.Exists("socks4autoload.txt"))
+                {
+                    proxies = new Scraper()
+                        .GetProxies(Scraper.ProxyType.Socks4, 2000)
+                        .Replace("\r", "")
+                        .Split('\n');
 
-                Log($"\tСкачал {proxies.Length} проксей \n");
+                    Log($"\tСкачал {proxies.Length} проксей \n");
+                }
+                else
+                {
+                    proxies = File.ReadAllLines("socks4autoload.txt");
+                    
+                    Log($"\nПодгрузил {proxies.Length} проксей \n");
+                }
+
+
                 Log("Чтобы выйти, смело жми 'e', ну а чтобы сохранить все 'OK' ключи, жми 's'!\n");
 
+                var errors = 0;
                 var x = 0;
 
                 keys.Shuffle();
@@ -133,12 +147,10 @@ namespace HideMyNameKeyParser
                 {
                     new Thread(() =>
                     {
-                        //Console.WriteLine("Начало");
-                        check:
+                    check:
                         try
                         {
                             req.Proxy = ProxyClient.Parse(ProxyType.Socks4, proxies[x]);
-                            req.UserAgent = "AndroidVPNGui/2.0.79 (h-RU; Android SDK: 29 (10); ru; +0600)";
                         }
                         catch (IndexOutOfRangeException)
                         {
@@ -175,9 +187,11 @@ namespace HideMyNameKeyParser
                             {
                                 okKeysList.Add(key);
 
-                                Log(key + " " + code + " " +
-                                    JObject.Parse(request)["time_remaining"].ToString().ToInt() / 60 / 60 +
-                                    " часа(ов) осталось");
+                                DateTime pDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(JObject.Parse(request)["time_remaining"].ToString().ToInt());
+                                var tdate = pDate - DateTime.Now;
+
+                                Log(key + " " + code + " " + tdate.ToString("hh:mm:ss") +
+                                    " осталось");
                             }
                             else
                             {
@@ -186,11 +200,13 @@ namespace HideMyNameKeyParser
                         }
                         catch
                         {
+                            errors++;
                             x++;
+
+                            Console.Title = "Checking... Errors: " + errors;
                             goto check;
                         }
 
-                        //Console.WriteLine("Конец");
                     }).Start();
 
 
@@ -204,11 +220,11 @@ namespace HideMyNameKeyParser
                 #endregion
             });
             check.Start();
-            
+
 
             while (true)
             {
-                if(check.IsCompleted)
+                if (check.IsCompleted)
                     Console.WriteLine("Done!");
 
                 var keyC = Console.ReadKey();
@@ -232,7 +248,7 @@ namespace HideMyNameKeyParser
 
             for (int i = 0; i < keys.Count; i++)
             {
-               okKeysList.Add($"{i}) 🔑 —{keys[i]}— 🔑");
+                okKeysList.Add($"{i}) 🔑 —{keys[i]}— 🔑");
             }
             okKeysList.Add("Все ключи чекались чекером ключей `HideMyName code parser & checker by -=[TEMNIJ]=-`");
 
